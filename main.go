@@ -32,6 +32,23 @@ func main() {
 	authService := auth.NewService()
 	campaignService := campaign.NewService(campaignRepository)
 
+	input := campaign.CreateCampaignInput{}
+	input.Name = "Penggalangan Dana Covid19"
+	input.ShortDescription = "short"
+	input.Description = "longggg"
+	input.GoalAmount = 100000000
+	input.Perks = "hadiah satu, dua, tiga"
+
+	inputUser, _ := userService.GetUserByID(1)
+	input.User = inputUser
+
+	_, err = campaignService.CreateCampaign(input)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+
+
 	//init handlers
 	userHandler := handler.NewUserHandler(userService, authService)
 	campaignHandler := handler.NewCampaignHandler(campaignService)
@@ -47,6 +64,7 @@ func main() {
 	api.POST("/avatars", authMiddleware(authService, userService), userHandler.UploadAvatar)
 
 	api.GET("/campaigns", campaignHandler.GetCampaigns)
+	api.POST("/campaigns", authMiddleware(authService, userService), campaignHandler.CreateCampaign)
 	api.GET("/campaigns/:id", campaignHandler.GetCampaign)
 
 	router.Run()
