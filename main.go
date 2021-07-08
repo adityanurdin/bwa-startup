@@ -2,9 +2,11 @@ package main
 
 import (
 	"bwastartup/auth"
+	"bwastartup/campaign"
 	"bwastartup/handler"
 	"bwastartup/helper"
 	"bwastartup/user"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -22,12 +24,27 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	//init repositories
 	userRepository := user.NewRepository(db)
+	campaignRepository := campaign.NewRepository(db)
+
+	campaigns,_ := campaignRepository.FindByUserID(1)
+
+	for _, campaign := range campaigns {
+		fmt.Println(campaign.Name)
+		if len(campaign.CampaignImages) > 0 {
+			fmt.Println(campaign.CampaignImages[0].FileName)
+		}
+	}
+
+	//init services
 	userService := user.NewService(userRepository)
 	authService := auth.NewService()
 
+	//init handlers
 	userHandler := handler.NewUserHandler(userService, authService)
 
+	//routing
 	router := gin.Default()
 	api := router.Group("/api/v1")
 
